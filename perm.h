@@ -8,9 +8,8 @@ class Permissions
   short permissions;
   public: 
 
-  void set(Permissions permissions, short originalPermissions, 
-                       short umask);
-  void print(const Permissions permissions)const;
+  void set(short originalPermissions, short umask);
+  void print()const;
 }; //class Permissions
 #endif  // PERMISSIONS_H
 
