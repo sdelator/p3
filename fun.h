@@ -4,18 +4,21 @@
 
 #include "directory.h"
 
-const int COMMAND_LENGTH  80
-const int NUM_COMMANDS 5
-const int MAX_ARGUMENTS 40
+const int COMMAND_LENGTH = 80;
+const int NUM_COMMANDS = 5;
+const int MAX_ARGUMENTS = 40;
 
 class Funix
 {
   Directory *currentDirectory;
   int umask;
-  int time;  
+  int time;
+  
+   
 public:
-void init(Funix *funix);  
+Funix();  
   // creates currentDirectory, and sets umask and time
+~Funix();
 void run(Funix *funix);  
   // reads and processes commands in a loop until proper exit
 
@@ -36,6 +39,6 @@ int processCommand(Funix *funix, char *command);  // returns 0 on proper exit
 void setUmask(Funix *funix, int argCount, const char *arguments[]);
   // checks "umask" command and executes it if it is proper
 void writePrompt(Funix *funix);  // shows path and '#'
-}//Funix 
+}; //Funix 
 #endif
 
