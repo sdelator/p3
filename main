@@ -5,8 +5,8 @@
 
 int main()
 {
-  Funix *funix = (Funix*) malloc(sizeof(Funix));
-  run(funix);
-  free(funix);
+  Funix *funix = new Funix();
+  funix->run(funix);
+  delete funix ;
 }  // main()
 
