@@ -1,123 +1,137 @@
 // Author: Sean Davis
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstring>
+#include <iostream>
+#include <cstdlib>
 #include "directory.h"
 
+using namespace std; 
 
-Directory* cd(Directory *directory, int argCount, const char *arguments[])
+Directory::Directory(const char *nam, short umask, int tim, 
+                     Directory *paren):time(tim), subDirectories(NULL), 
+                     subDirectoryCount(0), parent(paren)
+{
+   name = new char[strlen(nam) + 1];
+   strcpy(name , nam);
+   permissions.set(7, umask);
+}  // createDirectory())
+
+Directory::~Directory()
+{
+  
+  delete name;
+  
+  for (int i = 0 ; i <  subDirectoryCount ; i++)
+  {
+    delete subDirectories[i];
+  }//for
+  
+  delete [] subDirectories;
+}//dir
+
+Directory* Directory::cd(Directory *directory, int argCount, 
+                         const char *arguments[])
 {
   if (argCount != 2)
   {
-    printf("usage: cd directoryName\n");
-    return directory;
+    cout << "usage: cd directoryName" << endl;
+    return this;
   }  // if two many arguments
 
   if (strcmp(arguments[1], "..") == 0)
   {
-    if (directory->parent)
-      return directory->parent;
+    if (parent)
+      return parent;
     else  // this is root
-      return directory;
+      return this;
   }  // if cd ..
 
-  for (int i = 0; i < directory->subDirectoryCount; i++)
+  for (int i = 0; i < subDirectoryCount; i++)
   {
-    if (strcmp(directory->subDirectories[i].name, arguments[1]) == 0)
-      return &directory->subDirectories[i];
+    if (strcmp(subDirectories[i]->name, arguments[1]) == 0)
+      return subDirectories[i];
   }  // for each subdirectory
  
-  printf("cd: %s: No such file or directory\n", arguments[1]);
-  return directory;
+  cout << "cd:" << arguments[1] << " No such file or directory" << endl;
+  return this;
 }  // cd()
 
-void createDirectory(Directory *directory, const char *name, short umask, 
-                     int time, Directory *parent)
-{
-  directory->name = (char*) malloc(strlen(name) + 1);
-  directory->subDirectoryCount = 0;
-  directory->subDirectories = NULL;
-  strcpy(directory->name, name);
-  createPermissions(&directory->permissions, 7, umask);
-  directory->parent = parent;
-  directory->time = time;
-}  // createDirectory())
 
 
-void ls(const Directory *directory, int argCount, const char *arguments[])
+void Directory::ls(const Directory *directory, int argCount, 
+                   const char *arguments[])
 {
   if (argCount > 2 || (argCount == 2 && strcmp(arguments[1], "-l") != 0))
-    printf("usage: ls [-l]\n");
+    cout << "usage: ls [-l]" << endl;
   else  // correct number of arguments
   {
     if (argCount == 1)  // simple ls
     {
-      for (int i = 0; i < directory->subDirectoryCount; i++)
-        printf("%s ", directory->subDirectories[i].name);
+      for (int i = 0; i < directory->subDirectoryCount; i++)                
+        cout << subDirectories[i]->name << " ";
       
-      printf("\n");
+      cout << endl;
     }  // if simple ls
     else  // must be ls -l
     {
       for (int i = 0; i < directory->subDirectoryCount; i++)
       {
-        printPermissions(&directory->subDirectories[i].permissions);
-        printf(" %d %s\n", directory->subDirectories[i].time, 
-          directory->subDirectories[i].name);
+        permissions.print();
+        cout << " " << subDirectories[i]->time << " " 
+          << subDirectories[i]->name << endl;
       }  // for each subdirectory
     }  // else is ls -l
   }  // else correct arguments
 }  // ls()
 
 
-void mkdir(Directory *directory,  int argCount, const char *arguments[], 
-           short umask, int time)
+void Directory::mkdir(Directory *directory,  int argCount, 
+                      const char *arguments[], short umask, int time)
 {
   if (argCount != 2)
   {
-    printf("usage: mkdir directory_name\n");
+    cout << "usage: mkdir directory_name" << endl;
     return;
   }  // if too many arguments
   
-  if (directory->subDirectoryCount == MAX_DIRECTORIES)
+  if (subDirectoryCount == MAX_DIRECTORIES)
   {
-    printf("mkdir: %s already contains the maximum number of directories\n",
-      directory->name);
+    cout << "mkdir: " << name <<  
+            " already contains the maximum number of directories" << endl;
     return;
   }  // if already at max subdirectories
   
-  for (int i = 0; i < directory->subDirectoryCount; i++)
+  for (int i = 0; i < subDirectoryCount; i++)
   {
-    if (strcmp(directory->subDirectories[i].name, arguments[1]) == 0)
+    if (strcmp(subDirectories[i]->name, arguments[1]) == 0)
     {
-      printf("mkdir: cannot create directory '%s': File exists\n", 
-        arguments[1]);
+      cout << "mkdir: cannot create directory '" 
+              << arguments[1] << "': File exists" << endl;
       return;
     }  // if subdirectory already exists.
   }  // for each subdirectory
   
-  Directory *subDirectoriesTemp = (Directory*) 
-    malloc(sizeof(Directory) * (directory->subDirectoryCount + 1));
+  Directory* *subDirectoriesTemp = 
+    new Directory*[(subDirectoryCount + 1)];
     
-  for (int i = 0; i < directory->subDirectoryCount; i++)
-    subDirectoriesTemp[i] = directory->subDirectories[i];
+  for (int i = 0; i < subDirectoryCount; i++)
+    subDirectoriesTemp[i] = subDirectories[i];
   
-  free(directory->subDirectories);
-  directory->subDirectories = subDirectoriesTemp;
-  createDirectory(&directory->subDirectories[directory->subDirectoryCount], 
-    arguments[1], umask, time, directory);
-  directory->subDirectoryCount++; 
+  delete [] subDirectories;
+  subDirectories = subDirectoriesTemp;
+  subDirectories[subDirectoryCount] = new Directory(arguments[1], umask, 
+          time, directory);
+  subDirectoryCount++; 
 }  // mkdir()
 
 
-void showPath(const Directory *directory)
+void Directory::showPath(const Directory *directory)
 {
   if (directory->parent == NULL)
   {
-    printf("/");
+    cout << "/";
     return;
   }  // at root
   
   showPath(directory->parent);
-  printf("%s/", directory->name);
+  cout << directory->name << "/";
 }  // showPath())
