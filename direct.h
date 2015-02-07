@@ -5,7 +5,7 @@
 
 #include "permissions.h"
 
-const int MAX_DIRECTORIES 3
+const int MAX_DIRECTORIES = 3;
 
 class Directory
 {
@@ -17,13 +17,14 @@ class Directory
   Permissions permissions;
 public:
 Directory(const char *nam, short umask, 
-                     int tim, Directory *paren);
+          int tim, Directory *paren);
+~Directory();
 Directory* cd(Directory *directory, int argCount, const char *arguments[]);
 
 void ls(const Directory *directory, int argCount, const char *arguments[]);
 void mkdir(Directory *directory,  int argCount, const char *arguments[], 
            short umask, int time);
 void showPath(const Directory *directory);
-};
+}; // directory class
 #endif  // DIRECTORY_H
 
